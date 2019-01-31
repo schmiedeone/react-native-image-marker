@@ -118,6 +118,7 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
                     @Override
                     public void onNewResultImpl(@Nullable Bitmap bitmap) {
                         if (bitmap != null) {
+                            
                             Bitmap mark = Utils.scaleBitmap(bitmap, markerScale);
 
                             Uri myUri = Uri.parse(imgSavePath);
@@ -144,11 +145,17 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
 
                     Resources r = this.getResources();
 //                    InputStream is = r.openRawResource(resId);
-                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId);
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inScaled = false;
+                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId,options);
 //                    Bitmap bitmap = BitmapFactory.decodeStream(is);
-                    Log.d(IMAGE_MARKER_TAG, bitmap.getHeight() + "");
+
+                    Log.d(IMAGE_MARKER_TAG, bitmap.getHeight() + "marker height1");
+                    Log.d(IMAGE_MARKER_TAG, bitmap.getWidth() + "marker width1");
+                    Log.d(IMAGE_MARKER_TAG, markerScale + "marker scale");
                     Bitmap mark = Utils.scaleBitmap(bitmap, markerScale);
-                    Log.d(IMAGE_MARKER_TAG, mark.getHeight() + "");
+                    Log.d(IMAGE_MARKER_TAG, mark.getHeight() + "marker height2");
+                    Log.d(IMAGE_MARKER_TAG, mark.getWidth() + "marker width2");
 
                     if (bitmap != null && !bitmap.isRecycled() && markerScale != 1) {
                         bitmap.recycle();
@@ -189,6 +196,9 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
             int height = prePhoto.getHeight();
             int width =  prePhoto.getWidth();
 
+                     Log.d(IMAGE_MARKER_TAG, height + "image height1");
+                    Log.d(IMAGE_MARKER_TAG, width + "image width1");
+                    Log.d(IMAGE_MARKER_TAG, scale + "image scale");
 
             icon = Utils.getBlankBitmap(width, height);
 
@@ -212,6 +222,8 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
 
             if (position != null) {
                 Position pos = getRectFromPosition(position, marker.getWidth(), marker.getHeight(), width, height);
+                 Log.d(IMAGE_MARKER_TAG, marker + " - " + pos.getX() + " - " + pos.getY() + " - " + photoPaint);
+                 marker.setDensity(Bitmap.DENSITY_NONE);
                 canvas.drawBitmap(marker, pos.getX(), pos.getY(), photoPaint);
             } else {
                 canvas.drawBitmap(marker, X, Y, photoPaint);
@@ -529,7 +541,7 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
     }
 
     static Position getRectFromPosition(String position, int width, int height, int imageWidth, int imageHeigt){
-        Log.d("marker", "getRectFromPosition: "+position +" width:" +width+" height: "+height + " imageWidth: " + imageHeigt+" imageHeigt:" + imageHeigt);
+        Log.d("marker", "getRectFromPosition: "+position +" width:" +width+" height: "+height + " imageWidth: " + imageWidth+" imageHeigt:" + imageHeigt);
 
         int left = 20;
         int top = 40;

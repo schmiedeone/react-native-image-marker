@@ -110,8 +110,9 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
                     @Override
                     public void onNewResultImpl(@Nullable Bitmap bitmap) {
                         if (bitmap != null) {
-                            
-                            Bitmap mark = Utils.scaleBitmap(bitmap, markerScale);
+
+                            Float newMarkerSize = (bg.getWidth() * 0.33f) / bitmap.getWidth();
+                            Bitmap mark = Utils.scaleBitmap(bitmap, newMarkerSize);
 
                             markImageByBitmap(bg, mark, position, X, Y, quality, dest, promise);
                         } else {
@@ -131,20 +132,21 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
                     promise.reject( "error","Can't get resource by the path: " + uri);
                 } else {
                     Log.d(IMAGE_MARKER_TAG, "res：" + resId);
-
                     Resources r = this.getResources();
+                   
+                    BitmapFactory.Options o = new BitmapFactory.Options();
+                    o.inScaled = false;
+                 //   o.outWidth = 1404;
+                 //   o.outHeight = 368;
 //                    InputStream is = r.openRawResource(resId);
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inScaled = false;
-                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId,options);
+                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId,o);
 //                    Bitmap bitmap = BitmapFactory.decodeStream(is);
+                    Log.d(IMAGE_MARKER_TAG, bitmap.getHeight() + "");
 
-                    Log.d(IMAGE_MARKER_TAG, bitmap.getHeight() + "marker height1");
-                    Log.d(IMAGE_MARKER_TAG, bitmap.getWidth() + "marker width1");
-                    Log.d(IMAGE_MARKER_TAG, markerScale + "marker scale");
-                    Bitmap mark = Utils.scaleBitmap(bitmap, markerScale);
-                    Log.d(IMAGE_MARKER_TAG, mark.getHeight() + "marker height2");
-                    Log.d(IMAGE_MARKER_TAG, mark.getWidth() + "marker width2");
+                     Float newMarkerSize = (bg.getWidth() * 0.33f) / bitmap.getWidth();
+
+                    Bitmap mark = Utils.scaleBitmap(bitmap, newMarkerSize);
+                    Log.d(IMAGE_MARKER_TAG, mark.getHeight() + "");
 
                     if (bitmap != null && !bitmap.isRecycled() && markerScale != 1) {
                         bitmap.recycle();
@@ -182,9 +184,6 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
             int height = bg.getHeight();
             int width =  bg.getWidth();
 
-                     Log.d(IMAGE_MARKER_TAG, height + "image height1");
-                    Log.d(IMAGE_MARKER_TAG, width + "image width1");
-                    Log.d(IMAGE_MARKER_TAG, scale + "image scale");
 
             icon = Utils.getBlankBitmap(width, height);
 
@@ -208,10 +207,10 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
 
             if (position != null) {
                 Position pos = getRectFromPosition(position, marker.getWidth(), marker.getHeight(), width, height);
-                 Log.d(IMAGE_MARKER_TAG, marker + " - " + pos.getX() + " - " + pos.getY() + " - " + photoPaint);
-                 marker.setDensity(Bitmap.DENSITY_NONE);
+                marker.setDensity(Bitmap.DENSITY_NONE);
                 canvas.drawBitmap(marker, pos.getX(), pos.getY(), photoPaint);
             } else {
+
                 canvas.drawBitmap(marker, X, Y, photoPaint);
             }
 
@@ -630,7 +629,9 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
 
                     Resources r = this.getResources();
 //                    InputStream is = r.openRawResource(resId);
-                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId);
+   BitmapFactory.Options o = new BitmapFactory.Options();
+                    o.inScaled = false;
+                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId,o);
 //                    Bitmap bitmap = BitmapFactory.decodeStream(is);
                     Log.d(IMAGE_MARKER_TAG, bitmap.getHeight() + "");
                     Bitmap bg = Utils.scaleBitmap(bitmap, scale);
@@ -671,8 +672,9 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
                     @Override
                     public void onNewResultImpl(@Nullable Bitmap bitmap) {
                         if (bitmap != null) {
-                            Bitmap bg = Utils.scaleBitmap(bitmap, scale);
-                            markImage(bg, marker, position, 0, 0, markerScale, quality, dest, promise);
+                            Log.d(IMAGE_MARKER_TAG,"BATU bg "  + bitmap.getWidth() + " - " + bitmap.getHeight());
+                           // Bitmap bg = Utils.scaleBitmap(bitmap, scale);
+                            markImage(bitmap, marker, position, 0, 0, markerScale, quality, dest, promise);
                         } else {
                             promise.reject( "marker error","Can't retrieve the file from the src: " + uri);
                         }
@@ -692,8 +694,10 @@ public class ImageMarkerManager extends ReactContextBaseJavaModule {
                     Log.d(IMAGE_MARKER_TAG, "res：" + resId);
 
                     Resources r = this.getResources();
+                         BitmapFactory.Options o = new BitmapFactory.Options();
+                    o.inScaled = false;
 //                    InputStream is = r.openRawResource(resId);
-                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId);
+                    Bitmap bitmap = BitmapFactory.decodeResource(r, resId,o);
 //                    Bitmap bitmap = BitmapFactory.decodeStream(is);
                     Log.d(IMAGE_MARKER_TAG, bitmap.getHeight() + "");
                     Bitmap bg = Utils.scaleBitmap(bitmap, scale);

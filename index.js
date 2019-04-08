@@ -2,7 +2,7 @@
  * @Author: JimmyDaddy
  * @Date: 2017-09-14 10:40:09
  * @Last Modified by: JimmyDaddy
- * @Last Modified time: 2019-01-03 16:04:34
+ * @Last Modified time: 2019-02-25 13:40:41
  * @Description
  * @flow
  */
@@ -21,6 +21,12 @@ export type Position = $Enum<{
   'center': string
 }>;
 
+export type ShadowLayerStyle = {
+  'dx': float,
+  'dy': float,
+  'radius': float,
+  'color': string
+}
 
 type TextMarkOption = {
   // image src, local image
@@ -38,7 +44,8 @@ type TextMarkOption = {
   // image quality
   quality: number,
   position?: Position,
-  filename?: string
+  filename?: string,
+  shadowStyle: ShadowLayerStyle
 }
 
 type ImageMarkOption = {
@@ -66,32 +73,50 @@ export default class Marker {
       color,
       fontName,
       fontSize,
+      shadowStyle,
       scale,
       quality,
       position,
       filename
      } = option
+
+    if (!src) {
+      throw new Error('please set image!')
+    }
+
+    let srcObj = resolveAssetSource(src)
+    if (!srcObj) {
+      srcObj = {
+        uri: src,
+        __packager_asset: false
+      }
+    }
+
+    let mShadowStyle = shadowStyle || {}
+
     if (!position) {
       return ImageMarker.addText(
-        src,
+        srcObj,
         text,
         X,
         Y,
         color,
         fontName,
         fontSize,
+        mShadowStyle,
         scale,
         quality,
         filename
       )
     } else {
       return ImageMarker.addTextByPostion(
-        src,
+        srcObj,
         text,
         position,
         color,
         fontName,
         fontSize,
+        mShadowStyle,
         scale,
         quality,
         filename
@@ -112,8 +137,19 @@ export default class Marker {
       filename
     } = option
 
+    if (!src) {
+      throw new Error('please set image!')
+    }
     if (!markerSrc) {
       throw new Error('please set mark image!')
+    }
+
+    let srcObj = resolveAssetSource(src)
+    if (!srcObj) {
+      srcObj = {
+        uri: src,
+        __packager_asset: false
+      }
     }
 
     let markerObj = resolveAssetSource(markerSrc)
@@ -126,7 +162,7 @@ export default class Marker {
     
     if (!position) {
       return ImageMarker.markWithImage(
-        src,
+        srcObj,
         markerObj,
         X,
         Y,
@@ -137,7 +173,7 @@ export default class Marker {
       )
     } else {
       return ImageMarker.markWithImageByPosition(
-        src,
+        srcObj,
         markerObj,
         position,
         scale,
@@ -148,4 +184,3 @@ export default class Marker {
     }
   }
 }
-

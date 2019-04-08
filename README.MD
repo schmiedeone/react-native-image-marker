@@ -32,7 +32,7 @@ pod 'RNImageMarker', :path => '../node_modules/react-native-image-marker'
 
 |name|description|
 |--|--|
-|`src`|image url **(Android only support local image)**|
+|`src`|image url |
 |`text`|the text you want to mark with|
 |`position`| text position(`topLeft`,`topRight`,`topCenter`, `center`, `bottomLeft`, `bottomCenter`, `bottomRight`)|
 |`X`|distance from the left, **if you have set `position` yet you don't need to set this property again**|
@@ -40,6 +40,7 @@ pod 'RNImageMarker', :path => '../node_modules/react-native-image-marker'
 |`color`| text color |
 |`fontName`| fontName |
 |`fontSize`| fontSize |
+|`shadowStyle`| text's shadow style: iOS's `NSShadowAttributeName`, Android's `textPaint.shadowLayerStyle` |
 |`scale`| scale image |
 |`quality`| image qulaity |
 |`filename` | set filename for the result |
@@ -48,8 +49,8 @@ pod 'RNImageMarker', :path => '../node_modules/react-native-image-marker'
 
 |name|description|
 |--|--|
-|`src`|image url **(Android only support local image)**|
-|`markerSrc`|the icon you want to mark with  **(Android only support local image)** |
+|`src`|image url |
+|`markerSrc`|the icon you want to mark with |
 |`position`| text position(`topLeft`,`topRight`,`topCenter`, `center`, `bottomLeft`, `bottomCenter`, `bottomRight`)|
 |`X`|distance from the left, **if you have set `position` yet you don't need to set this property again**|
 |`Y`|distance from the top, **if you have set `position` you don't need to set this property again**|
@@ -57,6 +58,15 @@ pod 'RNImageMarker', :path => '../node_modules/react-native-image-marker'
 |`scale`| scale image |
 |`quality`| image qulaity |
 |`filename` | set filename for the result |
+
+* `ShadowStyle`
+
+|name|description|
+|--|--|
+|`radius`| blur radius |
+|`dx`| x offset|
+|`dy`| y offset|
+|`color`| shadow color |
 
 ## Usage
 
@@ -78,6 +88,12 @@ import ImageMarker from "react-native-image-marker"
     color: '#FF0000',
     fontName: 'Arial-BoldItalicMT', 
     fontSize: 44, 
+    shadowStyle: {
+        dx: 10.5,
+        dy: 20.8,
+        radius: 20.9,
+        color: '#ff00ff'
+    },
     scale: 1, 
     quality: 100
  }).then((res) => {
@@ -190,6 +206,28 @@ Marker.markImage({
         err
     })
 })
+// or base64
+Marker.markImage({
+    src: { uri: `data:img/jpg;base64,/9j/4qqqAQSkZJRgABAQEBLAEsAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/2wBDAQICAgICAgUDAwUKBwYHCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgr/wAARCAHnAooDASIA
+AhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgddddcI` }, 
+    markerSrc: { uri: `data:img/jpg;base64,/9j/4AAQSkZJRgABAQEBLAEsAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/2wBDAQICAgICAgUDAwUKBwYHCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgr/wAARCAHnAooDASIA
+AhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcI` }, 
+    position: 'topLeft',  // topLeft, topCenter,topRight, bottomLeft, bottomCenter , bottomRight, center
+    scale: 1, 
+    markerScale: 0.5, 
+    quality: 100
+}).then((path) => {
+    this.setState({
+        uri: Platform.OS === 'android' ? 'file://' + path : path,
+        loading: false
+    })
+}).catch((err) => {
+    console.log(err, 'err')
+     this.setState({
+        loading: false,
+        err
+    })
+})
 
 ```
 
@@ -205,6 +243,8 @@ Marker.markImage({
 [@mikaello](https://github.com/mikaello)
 [@Peretz30](https://github.com/Peretz30)
 [@gaoxiaosong](https://github.com/gaoxiaosong)
+[@onka13](https://github.com/onka13)
+[@OrangeFlavoredColdCoffee](https://github.com/OrangeFlavoredColdCoffee)
 
 ## Example
 

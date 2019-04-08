@@ -76,15 +76,16 @@ NSString * generateCacheFilePathForMarker(NSString * ext, NSString * filename)
     }
 }
 
-UIImage * markerImg(UIImage *image, NSString* text, CGFloat X, CGFloat Y, UIColor* color, UIFont* font, CGFloat scale){
-    int w = image.size.width * scale;
-    int h = image.size.height * scale;
+UIImage * markerImgWithText(UIImage *image, NSString* text, CGFloat X, CGFloat Y, UIColor* color, UIFont* font, CGFloat scale, NSShadow* shadow){
+    int w = image.size.width;
+    int h = image.size.height;
     
-    UIGraphicsBeginImageContext(image.size);
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, scale);
     [image drawInRect:CGRectMake(0, 0, w, h)];
     NSDictionary *attr = @{
                            NSFontAttributeName: font,   //设置字体
-                           NSForegroundColorAttributeName : color      //设置字体颜色
+                           NSForegroundColorAttributeName : color,      //设置字体颜色
+                           NSShadowAttributeName : shadow
                            };
     CGRect position = CGRectMake(X, Y, w, h);
     [text drawInRect:position withAttributes:attr];
@@ -98,13 +99,13 @@ UIImage * markerImg(UIImage *image, NSString* text, CGFloat X, CGFloat Y, UIColo
  *
  */
 UIImage * markeImageWithImage(UIImage *image, UIImage * waterImage, CGFloat X, CGFloat Y, CGFloat scale,  CGFloat markerScale ){
-    int w = image.size.width * scale;
-    int h = image.size.height * scale;
+    int w = image.size.width;
+    int h = image.size.height;
     
     int ww = waterImage.size.width * markerScale;
     int wh = waterImage.size.height * markerScale;
-
-    UIGraphicsBeginImageContextWithOptions(image.size, NO, 0);
+    
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, scale);
     [image drawInRect:CGRectMake(0, 0, w, h)];
     CGRect position = CGRectMake(X, Y, ww, wh);
     [waterImage drawInRect:position];
@@ -114,19 +115,19 @@ UIImage * markeImageWithImage(UIImage *image, UIImage * waterImage, CGFloat X, C
 }
 
 UIImage * markeImageWithImageByPostion(UIImage *image, UIImage * waterImage, MarkerPosition position, CGFloat scale, CGFloat markerScale) {
-    int w = image.size.width * scale;
-    int h = image.size.height * scale;
+    int w = image.size.width;
+    int h = image.size.height;
     
     int ww = waterImage.size.width * markerScale;
     int wh = waterImage.size.height * markerScale;
-    UIGraphicsBeginImageContextWithOptions(image.size, NO, 0);
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, scale);
     [image drawInRect:CGRectMake(0, 0, w, h)];
     
     CGSize size = CGSizeMake(ww, wh);
     
     
     CGRect rect;
-
+    
     switch (position) {
         case TopLeft:
             rect = (CGRect){
@@ -182,24 +183,25 @@ UIImage * markeImageWithImageByPostion(UIImage *image, UIImage * waterImage, Mar
     UIImage * newImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return newImage;
-
-
+    
+    
 }
 
 
-UIImage * markerImgByPostion(UIImage *image, NSString* text, MarkerPosition position, UIColor* color, UIFont* font, CGFloat scale){
-    int w = image.size.width * scale;
-    int h = image.size.height * scale;
+UIImage * markerImgWithTextByPostion    (UIImage *image, NSString* text, MarkerPosition position, UIColor* color, UIFont* font, CGFloat scale, NSShadow* shadow){
+    int w = image.size.width;
+    int h = image.size.height;
     
     NSDictionary *attr = @{
                            NSFontAttributeName: font,   //设置字体
-                           NSForegroundColorAttributeName : color      //设置字体颜色
+                           NSForegroundColorAttributeName : color,      //设置字体颜色
+                           NSShadowAttributeName : shadow
                            };
-
+    
     CGSize size = [text sizeWithAttributes:attr];
     
-//    CGSize size = CGSizeMake(fontSize, height);
-    UIGraphicsBeginImageContext(image.size);
+    //    CGSize size = CGSizeMake(fontSize, height);
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, scale);
     [image drawInRect:CGRectMake(0, 0, w, h)];
     CGRect rect;
     switch (position) {
@@ -297,13 +299,28 @@ UIImage * markerImgByPostion(UIImage *image, NSString* text, MarkerPosition posi
     return int_ch1+int_ch2;
 }
 
-RCT_EXPORT_METHOD(addText: (NSString *)path
-                  text:(NSString*)text
+-(NSShadow*)getShadowStyle:(NSDictionary *) shadowStyle
+{
+    if (shadowStyle != nil) {
+        NSShadow *shadow = [[NSShadow alloc]init];
+        shadow.shadowBlurRadius = [RCTConvert CGFloat: shadowStyle[@"radius"]];
+        shadow.shadowOffset = CGSizeMake([RCTConvert CGFloat: shadowStyle[@"dx"]], [RCTConvert CGFloat: shadowStyle[@"dy"]]);
+        UIColor* color = [self getColor:shadowStyle[@"color"]];
+        shadow.shadowColor = color != nil? color : [UIColor grayColor];
+        return shadow;
+    } else {
+        return nil;
+    }
+}
+
+RCT_EXPORT_METHOD(addText: (nonnull NSDictionary *)src
+                  text:(nonnull NSString*)text
                   X:(CGFloat)X
                   Y:(CGFloat)Y
                   color:(NSString*)color
                   fontName:(NSString*)fontName
                   fontSize:(CGFloat)fontSize
+                  shadowStyle:(nullable NSDictionary *)shadowStyle
                   scale:(CGFloat)scale
                   quality:(NSInteger) quality
                   filename: (NSString *)filename
@@ -312,9 +329,9 @@ RCT_EXPORT_METHOD(addText: (NSString *)path
 {
     NSString* fullPath = generateCacheFilePathForMarker(@".jpg", filename);
     //这里之前是loadImageOrDataWithTag
-    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:path] callback:^(NSError *error, UIImage *image) {
+    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:src] callback:^(NSError *error, UIImage *image) {
         if (error || image == nil) {
-            image = [[UIImage alloc] initWithContentsOfFile:path];
+            image = [[UIImage alloc] initWithContentsOfFile:src[@"uri"]];
             if (image == nil) {
                 NSLog(@"Can't retrieve the file from the path");
                 
@@ -326,7 +343,10 @@ RCT_EXPORT_METHOD(addText: (NSString *)path
         // Do mark
         UIFont* font = [UIFont fontWithName:fontName size:fontSize];
         UIColor* uiColor = [self getColor:color];
-        UIImage * scaledImage = markerImg(image, text, X, Y , uiColor, font, scale);
+        NSShadow* shadow = [self getShadowStyle: shadowStyle];
+       
+        
+        UIImage * scaledImage = markerImgWithText(image, text, X, Y , uiColor, font, scale, shadow);
         if (scaledImage == nil) {
             NSLog(@"Can't mark the image");
             reject(@"error",@"Can't mark the image.", error);
@@ -339,12 +359,13 @@ RCT_EXPORT_METHOD(addText: (NSString *)path
     }];
 }
 
-RCT_EXPORT_METHOD(addTextByPostion: (NSString *)path
-                  text:(NSString*)text
+RCT_EXPORT_METHOD(addTextByPostion: (nonnull NSDictionary *)src
+                  text:(nonnull NSString*)text
                   position:(MarkerPosition)position
                   color:(NSString*)color
                   fontName:(NSString*)fontName
                   fontSize:(CGFloat)fontSize
+                  shadowStyle:(NSDictionary *)shadowStyle
                   scale:(CGFloat)scale
                   quality:(NSInteger) quality
                   filename: (NSString *)filename
@@ -353,8 +374,9 @@ RCT_EXPORT_METHOD(addTextByPostion: (NSString *)path
 {
     NSString* fullPath = generateCacheFilePathForMarker(@".jpg", filename);
     //这里之前是loadImageOrDataWithTag
-    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:path] callback:^(NSError *error, UIImage *image) {
+    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:src] callback:^(NSError *error, UIImage *image) {
         if (error || image == nil) {
+            NSString* path = src[@"uri"];
             if ([path hasPrefix:@"data:"] || [path hasPrefix:@"file:"]) {
                 NSURL *imageUrl = [[NSURL alloc] initWithString:path];
                 image = [UIImage imageWithData:[NSData dataWithContentsOfURL:imageUrl]];
@@ -370,7 +392,8 @@ RCT_EXPORT_METHOD(addTextByPostion: (NSString *)path
         // Do mark
         UIFont* font = [UIFont fontWithName:fontName size:fontSize];
         UIColor* uiColor = [self getColor:color];
-        UIImage * scaledImage = markerImgByPostion(image, text, position, uiColor, font, scale);
+        NSShadow* shadow = [self getShadowStyle: shadowStyle];
+        UIImage * scaledImage = markerImgWithTextByPostion(image, text, position, uiColor, font, scale, shadow);
         if (scaledImage == nil) {
             NSLog(@"Can't mark the image");
             reject(@"error",@"Can't mark the image.", error);
@@ -384,8 +407,8 @@ RCT_EXPORT_METHOD(addTextByPostion: (NSString *)path
 }
 
 
-RCT_EXPORT_METHOD(markWithImage: (NSString *)path
-                  markImagePath: (NSDictionary *)markerPath
+RCT_EXPORT_METHOD(markWithImage: (nonnull NSDictionary *)src
+                  markImagePath: (nonnull NSDictionary *)markerSrc
                   X:(CGFloat)X
                   Y:(CGFloat)Y
                   scale:(CGFloat)scale
@@ -397,8 +420,9 @@ RCT_EXPORT_METHOD(markWithImage: (NSString *)path
 {
     NSString* fullPath = generateCacheFilePathForMarker(@".jpg", filename);
     //这里之前是loadImageOrDataWithTag
-    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:path] callback:^(NSError *error, UIImage *image) {
+    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:src] callback:^(NSError *error, UIImage *image) {
         if (error || image == nil) {
+            NSString* path = src[@"uri"];
             image = [[UIImage alloc] initWithContentsOfFile:path];
             if (image == nil) {
                 NSLog(@"Can't retrieve the file from the path");
@@ -408,8 +432,9 @@ RCT_EXPORT_METHOD(markWithImage: (NSString *)path
             }
         }
         
-        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:markerPath] callback:^(NSError *markerError, UIImage *marker) {
+        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:markerSrc] callback:^(NSError *markerError, UIImage *marker) {
             if (markerError || marker == nil) {
+                NSString* path = markerSrc[@"uri"];
                 marker = [[UIImage alloc] initWithContentsOfFile:path];
                 if (marker == nil) {
                     NSLog(@"Can't retrieve the file from the path");
@@ -433,8 +458,8 @@ RCT_EXPORT_METHOD(markWithImage: (NSString *)path
     }];
 }
 
-RCT_EXPORT_METHOD(markWithImageByPosition: (NSString *)path
-                  markImagePath: (NSDictionary *)markerPath
+RCT_EXPORT_METHOD(markWithImageByPosition: (nonnull NSDictionary *)src
+                  markImagePath: (nonnull NSDictionary *)markerSrc
                   position:(MarkerPosition)position
                   scale:(CGFloat)scale
                   markerScale:(CGFloat)markerScale
@@ -445,8 +470,9 @@ RCT_EXPORT_METHOD(markWithImageByPosition: (NSString *)path
 {
     NSString* fullPath = generateCacheFilePathForMarker(@".jpg", filename);
     //这里之前是loadImageOrDataWithTag
-    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:path] callback:^(NSError *error, UIImage *image) {
+    [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:src] callback:^(NSError *error, UIImage *image) {
         if (error || image == nil) {
+            NSString* path = src[@"uri"];
             image = [[UIImage alloc] initWithContentsOfFile:path];
             if (image == nil) {
                 NSLog(@"Can't retrieve the file from the path");
@@ -456,10 +482,11 @@ RCT_EXPORT_METHOD(markWithImageByPosition: (NSString *)path
             }
         }
         
-//        RCTImageSource *imageSource = [RCTConvert RCTImageSource:markerPath];
-
-        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:markerPath] callback:^(NSError *markerError, UIImage *marker) {
+        //        RCTImageSource *imageSource = [RCTConvert RCTImageSource:markerPath];
+        
+        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:markerSrc] callback:^(NSError *markerError, UIImage *marker) {
             if (markerError || marker == nil) {
+                NSString* path = markerSrc[@"uri"];
                 marker = [[UIImage alloc] initWithContentsOfFile:path];
                 if (marker == nil) {
                     NSLog(@"Can't retrieve the file from the path");

@@ -3,6 +3,8 @@ import { TouchableOpacity, Image, View, Text, Platform, Dimensions, StyleSheet, 
 import Marker from 'react-native-image-marker'
 import Picker from 'react-native-image-picker'
 const icon = require('./icon.jpeg')
+const bg = require('./bg.png')
+const base64Bg = require('./bas64bg').default 
 
 const { width } = Dimensions.get('window')
 
@@ -42,7 +44,7 @@ export default class MarkerTest extends React.Component {
     super(props)
     this.state = {
       uri: '',
-      image: '',
+      image: base64Bg,
       marker: icon,
       markImage: true
     }
@@ -149,12 +151,11 @@ export default class MarkerTest extends React.Component {
     if (this.state.markImage) {
       Marker.markImage({
         src: this.state.image, 
-        markerSrc: this.state.marker, 
+        markerSrc: base64Bg, 
         position: type, 
         scale: 1, 
-        markerScale: 0.5, 
-        quality: 100,
-        filename: 'markerfile1'
+        markerScale: 1, 
+        quality: 100
       }).then((path) => {
         console.log('====================================');
         console.log(path);
@@ -179,7 +180,12 @@ export default class MarkerTest extends React.Component {
         fontSize: 44, 
         scale: 1, 
         quality: 100,
-        filename: 'markerfile2'
+        shadowStyle: {
+          dx: 10.5,
+          dy: 20.8,
+          radius: 20.9,
+          color: '#ff00ff'
+        }
       })
       .then((path) => {
         console.log('====================================');
@@ -228,10 +234,15 @@ export default class MarkerTest extends React.Component {
         Y: 30, 
         color: '#FF0000',
         fontName: 'Arial-BoldItalicMT', 
-        fontSize: 44, 
+        fontSize: 44,
+        shadowStyle: {
+          dx: 10.5,
+          dy: 20.8,
+          radius: 20.9,
+          color: '#ff00ff'
+        },
         scale: 1, 
-        quality: 100,
-        filename: 'markerfile4'
+        quality: 100
       }).then((path) => {
         console.log('====================================');
         console.log(path);
